@@ -4,17 +4,14 @@ import { prisma } from "@/lib/db";
 import { qualifyLead } from "@/lib/ai/lead-qualification";
 
 const LeadSchema = z.object({
-  name: z.string().min(2),
+  name: z.string().min(1),
   email: z.string().email().optional(),
   phone: z.string().optional(),
-  source: z.enum(["web", "whatsapp", "instagram", "facebook", "linkedin", "tiktok", "email"]),
-  propertyId: z.string().optional(),
   message: z.string().optional(),
+  source: z.enum(["WEB", "WHATSAPP", "META_ADS", "GOOGLE_ADS", "REFERRAL", "DIRECT"]).default("WEB"),
+  propertyId: z.string().optional(),
 });
 
-// POST /api/leads — single normalized entry point for every channel.
-// All channel-specific webhooks (WhatsApp, Meta, LinkedIn, TikTok) should
-// transform their payload into this shape before calling this route.
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const parsed = LeadSchema.safeParse(body);
@@ -23,25 +20,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
+  const { score, stage } = qualifyLead(parsed.data);
+
   const lead = await prisma.lead.create({
     data: {
       name: parsed.data.name,
       email: parsed.data.email,
       phone: parsed.data.phone,
+      message: parsed.data.message,
       source: parsed.data.source,
       propertyId: parsed.data.propertyId,
-      stage: "NEW",
+      score,
+      stage,
     },
   });
 
-  // Fire-and-forget qualification — in production this should go through a
-  // queue (BullMQ) rather than blocking the request.
-  const { score, recommendedStage } = await qualifyLead(lead, parsed.data.message);
-
-  const updated = await prisma.lead.update({
-    where: { id: lead.id },
-    data: { score, stage: recommendedStage },
-  });
-
-  return NextResponse.json({ lead: updated }, { status: 201 });
+  return NextResponse.json({ lead }, { status: 201 });
 }
+
+export async function GET() {
+  const leads = await prisma.lead.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 100,
+  });
+  return NextResponse.json({ leads });
+}
+
