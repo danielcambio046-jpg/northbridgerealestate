@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { qualifyLead } from "@/lib/ai/lead-qualification";
 
 const LeadSchema = z.object({
   name: z.string().min(1),
@@ -11,6 +10,17 @@ const LeadSchema = z.object({
   source: z.enum(["WEB", "WHATSAPP", "META_ADS", "GOOGLE_ADS", "REFERRAL", "DIRECT"]).default("WEB"),
   propertyId: z.string().optional(),
 });
+
+function qualifyLead(data: { phone?: string; email?: string; propertyId?: string; source?: string }) {
+  let score = 20;
+  if (data.phone) score += 15;
+  if (data.email) score += 10;
+  if (data.propertyId) score += 20;
+  if (data.source === "WEB" || data.source === "WHATSAPP") score += 10;
+  score = Math.max(0, Math.min(100, score));
+  const stage = score >= 60 ? "QUALIFIED" : "NEW";
+  return { score, stage } as const;
+}
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
