@@ -1,13 +1,13 @@
 // NorthBridge Real Estate — Core Data Model
-// Run: npx prisma generate && npx prisma migrate dev --name init
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL")
 }
 
 enum UserRole {
@@ -40,155 +40,91 @@ enum PropertyStatus {
   SOLD
 }
 
-enum Country {
-  BRAZIL
-  VENEZUELA
-}
-
-enum LeadStage {
+enum LeadStatus {
   NEW
   QUALIFIED
   INTERESTED
   DUE_DILIGENCE
   NEGOTIATION
   CLOSED
+  LOST
 }
 
-enum DocumentVerificationStatus {
-  UNVERIFIED
-  IN_REVIEW
-  VERIFIED
-  FLAGGED
+enum LeadSource {
+  WEB
+  WHATSAPP
+  META_ADS
+  GOOGLE_ADS
+  REFERRAL
+  DIRECT
 }
 
 model User {
-  id            String        @id @default(cuid())
-  email         String        @unique
-  name          String
-  password      String?
-  role          UserRole
-  country       String?
-  kycStatus     KycStatus     @default(PENDING)
-  createdAt     DateTime      @default(now())
-  properties    Property[]    @relation("PropertyOwner")
-  leadsAssigned Lead[]        @relation("AssignedAgent")
-  documents     PropertyDocument[]
-  conversations Conversation[]
-  projects      DevelopmentProject[]
+  id         String     @id @default(cuid())
+  email      String     @unique
+  name       String
+  password   String?
+  role       UserRole   @default(INVESTOR)
+  kycStatus  KycStatus  @default(PENDING)
+  properties Property[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 }
 
 model Property {
-  id            String         @id @default(cuid())
-  ticker        String         @unique
-  title         String
-  description   String
-  country       Country
-  state         String
-  city          String
-  type          PropertyType
-  price         Decimal
-  currency      String         @default("USD")
-  expectedRoi   Float?
-  capRate       Float?
-  areaM2        Float?
-  status        PropertyStatus @default(DRAFT)
-  ownerId       String
-  owner         User           @relation("PropertyOwner", fields: [ownerId], references: [id])
-  media         PropertyMedia[]
-  documents     PropertyDocument[]
-  leads         Lead[]
-  riskAssessment RiskAssessment?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-
-  @@index([country, city, type])
-  @@index([expectedRoi])
+  id          String          @id @default(cuid())
+  ticker      String          @unique
+  title       String
+  description String?
+  country     String
+  state       String
+  city        String
+  type        PropertyType
+  status      PropertyStatus  @default(PENDING_VERIFICATION)
+  price       Decimal         @db.Decimal(15, 2)
+  expectedRoi Decimal?        @db.Decimal(5, 2)
+  capRate     Decimal?        @db.Decimal(5, 2)
+  areaM2      Decimal?        @db.Decimal(10, 2)
+  owner       User            @relation(fields: [ownerId], references: [id])
+  ownerId     String
+  media       PropertyMedia[]
+  leads       Lead[]
+  risk        RiskAssessment?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 }
 
 model PropertyMedia {
   id         String   @id @default(cuid())
-  propertyId String
   property   Property @relation(fields: [propertyId], references: [id])
-  type       String   // photo | video | drone | tour360
+  propertyId String
   url        String
+  type       String   @default("IMAGE")
   order      Int      @default(0)
-}
-
-model PropertyDocument {
-  id                 String                       @id @default(cuid())
-  propertyId         String
-  property           Property                     @relation(fields: [propertyId], references: [id])
-  uploadedById       String
-  uploadedBy         User                         @relation(fields: [uploadedById], references: [id])
-  type               String
-  url                String
-  verificationStatus DocumentVerificationStatus    @default(UNVERIFIED)
-  createdAt          DateTime                      @default(now())
-}
-
-model RiskAssessment {
-  id          String   @id @default(cuid())
-  propertyId  String   @unique
-  property    Property @relation(fields: [propertyId], references: [id])
-  riskScore   Float    // 0 (low risk) - 100 (high risk)
-  factors     Json     // structured list of contributing factors
-  generatedAt DateTime @default(now())
-}
-
-model DevelopmentProject {
-  id            String   @id @default(cuid())
-  developerId   String
-  developer     User     @relation(fields: [developerId], references: [id])
-  name          String
-  fundingGoal   Decimal?
-  presaleStatus String   @default("planning")
-  milestones    Json     // [{ name, dueDate, status }]
-  createdAt     DateTime @default(now())
+  createdAt  DateTime @default(now())
 }
 
 model Lead {
-  id             String    @id @default(cuid())
-  propertyId     String?
-  property       Property? @relation(fields: [propertyId], references: [id])
-  source         String    // web | whatsapp | instagram | facebook | linkedin | tiktok | email
-  name           String
-  email          String?
-  phone          String?
-  stage          LeadStage @default(NEW)
-  score          Int       @default(0)
-  assignedAgentId String?
-  assignedAgent  User?     @relation("AssignedAgent", fields: [assignedAgentId], references: [id])
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-}
-
-model Conversation {
-  id        String    @id @default(cuid())
-  userId    String?
-  user      User?     @relation(fields: [userId], references: [id])
-  channel   String    @default("web")
-  messages  Message[]
-  createdAt DateTime  @default(now())
-}
-
-model Message {
-  id             String       @id @default(cuid())
-  conversationId String
-  conversation   Conversation @relation(fields: [conversationId], references: [id])
-  role           String       // user | assistant | system
-  content        String
-  createdAt      DateTime     @default(now())
-}
-
-// Audit log for every AI agent invocation — used for cost control, QA and debugging.
-model AIAgentRun {
-  id         String   @id @default(cuid())
-  agentType  String   // investment_advisor | property_analyzer | roi_calculator | legal_assistant | ...
-  input      Json
-  output     Json
+  id         String     @id @default(cuid())
+  name       String
+  email      String?
+  phone      String?
+  message    String?
+  source     LeadSource @default(WEB)
+  stage      LeadStatus @default(NEW)
+  score      Int        @default(0)
+  property   Property?  @relation(fields: [propertyId], references: [id])
   propertyId String?
-  leadId     String?
-  latencyMs  Int?
-  costUsd    Float?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model RiskAssessment {
+  id         String   @id @default(cuid())
+  property   Property @relation(fields: [propertyId], references: [id])
+  propertyId String   @unique
+  riskScore  Int      @default(50)
+  factors    Json?
   createdAt  DateTime @default(now())
 }
+
