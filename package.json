@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "postinstall": "prisma generate",
+    "postinstall": "PRISMA_SKIP_POSTINSTALL_GENERATE=true prisma generate || prisma generate --no-engine",
     "prisma:seed": "tsx prisma/seed.ts"
   },
   "prisma": { "seed": "tsx prisma/seed.ts" },
