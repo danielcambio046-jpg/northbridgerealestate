@@ -10,10 +10,12 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
 
   if (!property) return notFound();
 
-  const price = Number(property.price).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
-  const roi = property.expectedRoi != null ? `${Number(property.expectedRoi).toFixed(1)}%` : null;
-  const cap = property.capRate != null ? `${Number(property.capRate).toFixed(1)}%` : null;
-  const area = property.areaM2 != null ? `${Number(property.areaM2).toLocaleString()} m²` : null;
+  const price = Number(property.price).toLocaleString("en-US", {
+    style: "currency", currency: "USD", maximumFractionDigits: 0,
+  });
+  const roi = property.expectedRoi != null ? `${Number(property.expectedRoi).toFixed(1)}%` : "—";
+  const cap = property.capRate != null ? `${Number(property.capRate).toFixed(1)}%` : "—";
+  const area = property.areaM2 != null ? `${Number(property.areaM2).toLocaleString()} m²` : "—";
 
   return (
     <main style={{ maxWidth: 860, margin: "0 auto", padding: "32px 24px", fontFamily: "sans-serif" }}>
@@ -28,20 +30,21 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
       {property.description && <p style={{ marginBottom: 24 }}>{property.description}</p>}
 
       <div style={{ borderTop: "1px solid #ddd6c4", marginBottom: 28 }}>
-        {[
-          ["Price", price],
-          roi ? ["Expected ROI", roi] : null,
-          cap ? ["Cap rate", cap] : null,
-          area ? ["Area", area] : null,
-        ].filter(Boolean).map(([k, v]) => (
-          <div key={k as string} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid #ddd6c4", fontSize: 14 }}>
-            <span style={{ color: "#5b6560" }}>{k}</span>
-            <span style={{ fontFamily: "monospace" }}>{v}</span>
-          </div>
-        ))}
+        <div style={{ display:"flex", justifyContent:"space-between", padding:"10px 0", borderBottom:"1px solid #ddd6c4", fontSize:14 }}>
+          <span style={{ color:"#5b6560" }}>Price</span><span style={{ fontFamily:"monospace" }}>{price}</span>
+        </div>
+        <div style={{ display:"flex", justifyContent:"space-between", padding:"10px 0", borderBottom:"1px solid #ddd6c4", fontSize:14 }}>
+          <span style={{ color:"#5b6560" }}>Expected ROI</span><span style={{ fontFamily:"monospace", color:"#a8714a" }}>{roi}</span>
+        </div>
+        <div style={{ display:"flex", justifyContent:"space-between", padding:"10px 0", borderBottom:"1px solid #ddd6c4", fontSize:14 }}>
+          <span style={{ color:"#5b6560" }}>Cap rate</span><span style={{ fontFamily:"monospace" }}>{cap}</span>
+        </div>
+        <div style={{ display:"flex", justifyContent:"space-between", padding:"10px 0", borderBottom:"1px solid #ddd6c4", fontSize:14 }}>
+          <span style={{ color:"#5b6560" }}>Area</span><span style={{ fontFamily:"monospace" }}>{area}</span>
+        </div>
       </div>
 
-      <h2 style={{ fontFamily: "Georgia,serif", fontSize: 18, marginBottom: 14 }}>Request information</h2>
+      <h2 style={{ fontFamily:"Georgia,serif", fontSize:18, marginBottom:14 }}>Request information</h2>
       <LeadForm propertyId={property.id} />
     </main>
   );
