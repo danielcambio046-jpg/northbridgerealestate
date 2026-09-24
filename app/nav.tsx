@@ -1,34 +1,33 @@
 "use client";
-
 import { useSession, signOut } from "next-auth/react";
-
-const SELLER_ROLES = ["SELLER", "AGENT", "DEVELOPER", "ADMIN"];
+import Link from "next/link";
 
 export function Nav() {
   const { data: session, status } = useSession();
-
   return (
     <nav className="site-nav">
-      <a href="/" className="site-nav-brand">NorthBridge</a>
-      <div className="site-nav-links">
-        <a href="/properties">Marketplace</a>
-        {status === "authenticated" && session.user.role && SELLER_ROLES.includes(session.user.role) && (
-          <a href="/properties/new">List a property</a>
-        )}
+      <Link href="/" className="site-nav-brand">
+        <span className="site-nav-brand-name">NorthBridge</span>
+        <span className="site-nav-brand-tag">Venezuela Property Advisory</span>
+      </Link>
+      <ul className="site-nav-links">
+        <li><Link href="/properties">Properties</Link></li>
+        <li><Link href="/market">Market Intelligence</Link></li>
+        <li><Link href="/law">Property Law</Link></li>
+        <li><Link href="/foreign-investor">Foreign Investor</Link></li>
+        <li><Link href="/due-diligence">Due Diligence™</Link></li>
         {status === "authenticated" ? (
           <>
-            <span className="site-nav-user">{session.user.name}</span>
-            <button className="site-nav-signout" onClick={() => signOut({ callbackUrl: "/" })}>
-              Sign out
-            </button>
+            <li><span className="site-nav-user">{session.user.name}</span></li>
+            <li><button className="site-nav-cta site-nav-signout" onClick={() => signOut({ callbackUrl: "/" })}>Sign out</button></li>
           </>
-        ) : status === "unauthenticated" ? (
+        ) : (
           <>
-            <a href="/login">Log in</a>
-            <a href="/register" className="site-nav-cta">Sign up</a>
+            <li><Link href="/login">Log in</Link></li>
+            <li><Link href="/register" className="site-nav-cta">Request Advisory</Link></li>
           </>
-        ) : null}
-      </div>
+        )}
+      </ul>
     </nav>
   );
 }
