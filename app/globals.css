@@ -160,3 +160,27 @@ h1, h2, h3, h4 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight:
   .footer-top { grid-template-columns: 1fr 1fr; }
   .databar { padding: 14px 20px; gap: 24px; }
 }
+
+/* ─── NAV USER ACTIONS ─── */
+.site-nav-user-actions { display: flex; align-items: center; gap: 12px; }
+.site-nav-user-name { font-size: 12px; color: var(--mist); }
+.site-nav-action-link { font-size: 12.5px; color: var(--steel); text-decoration: none; }
+.site-nav-action-link:hover { color: var(--white); }
+.site-nav-action-btn { background: none; border: none; font-size: 12.5px; color: var(--steel); cursor: pointer; font-family: inherit; padding: 0; }
+.site-nav-action-btn:hover { color: var(--white); }
+
+/* ─── HAMBURGER ─── */
+.site-nav-hamburger { display: none; flex-direction: column; gap: 4px; background: none; border: none; cursor: pointer; padding: 4px; }
+.site-nav-hamburger span { display: block; width: 20px; height: 1.5px; background: var(--mist); }
+
+/* ─── MOBILE NAV ─── */
+.site-nav-mobile { position: fixed; top: 64px; left: 0; right: 0; background: rgba(15,26,16,0.98); z-index: 99; padding: 16px 24px; display: flex; flex-direction: column; gap: 4px; border-bottom: 1px solid rgba(200,169,110,0.1); backdrop-filter: blur(8px); }
+.site-nav-mobile a, .site-nav-mobile button { font-size: 14px; color: var(--mist); text-decoration: none; padding: 10px 0; border: none; background: none; text-align: left; cursor: pointer; font-family: inherit; border-bottom: 1px solid rgba(200,169,110,0.06); }
+.site-nav-mobile a:hover, .site-nav-mobile button:hover { color: var(--white); }
+.site-nav-mobile-divider { height: 1px; background: rgba(200,169,110,0.15); margin: 8px 0; }
+
+/* ─── DATA LABEL ─── */
+.data-label-unknown { background: rgba(90,80,80,0.2); color: #A08080; }
+
+@media (max-width: 1100px) { .site-nav-links { display: none; } .site-nav-hamburger { display: flex; } }
+@media (max-width: 600px) { .footer-top { grid-template-columns: 1fr; } }
